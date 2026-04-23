@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZIFO AI Blueprint Registry</title>
+    <!-- React & Babel for Browser Rendering -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Custom Icon Component to handle Lucide in CDN environment
+        const Icon = ({ name, size = 18, className = "" }) => {
+            useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [name]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
+
+        const blueprintData = [
+            {
+                id: "BP-01",
+                name: "AI-Powered Computer System Validation (CSV)",
+                impact: "Accelerates validation by up to 75%. Automates FRA and test script generation.",
+                risk: "High Risk",
+                riskSub: "Affects GxP/Validated state",
+                compliance: "Traceability: Logic for script generation must be transparent.",
+                agenticProfile: "Assisted Workflow",
+                agenticDesc: "Infers application context and derives risk scores.",
+                guardrails: [
+                    { type: "HITL", desc: "Expert review of all generated scripts." },
+                    { type: "Audit Log", desc: "Full trace of prompt-to-output logic." },
+                    { type: "Pass-Back", desc: "Direct 75% effort reduction passed to client." }
+                ]
+            },
+            {
+                id: "BP-02",
+                name: "AI-Powered Data Migration",
+                impact: "Error-free transfer of complex scientific data. Minimizes downtime and risk.",
+                risk: "High Risk",
+                riskSub: "Critical for GxP Data Integrity",
+                compliance: "Confidentiality: Data isolation; no leakage between projects.",
+                agenticProfile: "Autonomous Decisioning",
+                agenticDesc: "Agents handle mapping and continuous learning.",
+                guardrails: [
+                    { type: "HITL", desc: "Final mapping verification by domain experts." },
+                    { type: "Audit Log", desc: "Log of autonomous mapping decisions." },
+                    { type: "Pass-Back", desc: "Reduction in manual ETL hours reflected in pricing." }
+                ]
+            },
+            {
+                id: "BP-03",
+                name: "AI-Powered CoA Solution",
+                impact: "Moves data from PDF to LIMS in seconds. Eliminates manual entry errors.",
+                risk: "Medium-High",
+                riskSub: "Impacts Product Release",
+                compliance: "Data Privacy: No use of batch/charge data for external model training.",
+                agenticProfile: "Agentic Orchestration",
+                agenticDesc: "Multiple agents drive digitization and schema alignment.",
+                guardrails: [
+                    { type: "HITL", desc: "One-click approval interface for extracted data." },
+                    { type: "Audit Log", desc: "Record of OCR/LLM extraction confidence." },
+                    { type: "Pass-Back", desc: "Efficiency gains in QA lab operations." }
+                ]
+            },
+            {
+                id: "BP-04",
+                name: "AI-Powered Audit Trail Review",
+                impact: "Ensures 100% review coverage and data integrity with minimal overhead.",
+                risk: "High Risk",
+                riskSub: "Regulatory Compliance requirement",
+                compliance: "Transparency: Supplier must explain how violations are detected.",
+                agenticProfile: "Multi-Agent Framework",
+                agenticDesc: "Specialized agents for review and violation detection.",
+                guardrails: [
+                    { type: "HITL", desc: "Human review of flagged 'violations'." },
+                    { type: "Audit Log", desc: "Immutable log of the review execution." },
+                    { type: "Pass-Back", desc: "Lower cost per audit log review vs. manual SOP." }
+                ]
+            },
+            {
+                id: "BP-05",
+                name: "Precision Vendor Selection",
+                impact: "Reduces selection time from months to days. Ensures objective decisions.",
+                risk: "Limited Risk",
+                riskSub: "Decision Support System",
+                compliance: "IP & Bias: Customer owns report; AI must prove objectivity.",
+                agenticProfile: "Parallel Processing",
+                agenticDesc: "LLM analyzes requirements and identifies gaps concurrently.",
+                guardrails: [
+                    { type: "HITL", desc: "Final vendor weighting by stakeholders." },
+                    { type: "Audit Log", desc: "Trace of scoring criteria and weighting logic." },
+                    { type: "Pass-Back", desc: "Faster procurement ROI for the client." }
+                ]
+            }
+        ];
+
+        const StatCard = ({ iconName, iconColor, label, value }) => (
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-100 transition-colors">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-slate-50 rounded-lg">
+                        <Icon name={iconName} className={iconColor} />
+                    </div>
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{label}</span>
+                </div>
+                <div className="text-2xl font-bold text-slate-900">{value}</div>
+            </div>
+        );
+
+        const App = () => {
+            const [searchTerm, setSearchTerm] = useState("");
+            const [filter, setFilter] = useState("All");
+
+            const filteredData = blueprintData.filter(bp => {
+                const matchesSearch = bp.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesFilter = filter === "All" || bp.risk === filter;
+                return matchesSearch && matchesFilter;
+            });
+
+            const getRiskColor = (risk) => {
+                if (risk.includes("High")) return "text-red-600 bg-red-50 border-red-100";
+                if (risk.includes("Medium")) return "text-orange-600 bg-orange-50 border-orange-100";
+                return "text-emerald-600 bg-emerald-50 border-emerald-100";
+            };
+
+            return (
+                <div className="min-h-screen">
+                    {/* Header */}
+                    <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-indigo-600 p-2 rounded-lg text-white flex items-center justify-center">
+                                    <Icon name="cpu" size={24} />
+                                </div>
+                                <div>
+                                    <h1 className="text-xl font-bold tracking-tight">ZIFO AI BLUEPRINT REGISTRY</h1>
+                                    <p className="text-xs text-slate-500 font-medium tracking-widest uppercase">Strategic Governance & Risk Dashboard</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-4 items-center text-sm font-medium">
+                                <span className="flex items-center gap-2 text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full">
+                                    <Icon name="shield-check" size={16} className="text-indigo-600" />
+                                    EU AI Act Compliant
+                                </span>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-7xl mx-auto px-6 py-8">
+                        {/* Stats Section */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+                            <StatCard iconName="shield-alert" iconColor="text-red-500" label="High Risk Blueprints" value="3" />
+                            <StatCard iconName="zap" iconColor="text-amber-500" label="Avg. Efficiency Gain" value="~60%" />
+                            <StatCard iconName="activity" iconColor="text-indigo-500" label="Agentic Maturity" value="Advanced" />
+                            <StatCard iconName="user-check" iconColor="text-emerald-500" label="Compliance Rate" value="100%" />
+                        </div>
+
+                        {/* Search & Filter */}
+                        <div className="flex flex-col md:flex-row gap-4 mb-8 justify-between items-end md:items-center">
+                            <div className="relative w-full md:w-96">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <Icon name="search" size={18} />
+                                </div>
+                                <input 
+                                    type="text" 
+                                    placeholder="Search blueprints..." 
+                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex gap-2 p-1 bg-slate-200/50 rounded-xl overflow-x-auto max-w-full">
+                                {["All", "High Risk", "Medium-High", "Limited Risk"].map((f) => (
+                                    <button
+                                        key={f}
+                                        onClick={() => setFilter(f)}
+                                        className={`px-4 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+                                            filter === f ? "bg-white text-indigo-600 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                                        }`}
+                                    >
+                                        {f}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* List */}
+                        <div className="grid gap-6">
+                            {filteredData.map((bp) => (
+                                <div key={bp.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden group">
+                                    <div className="p-6">
+                                        <div className="flex flex-col lg:flex-row gap-6">
+                                            <div className="flex-1">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <h2 className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{bp.name}</h2>
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRiskColor(bp.risk)}`}>
+                                                        {bp.risk}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-slate-500 mb-4 leading-relaxed">{bp.impact}</p>
+                                                
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
+                                                            <Icon name="eye" size={12} /> Compliance Focus (ACME)
+                                                        </div>
+                                                        <p className="text-xs font-semibold text-slate-700">{bp.compliance}</p>
+                                                    </div>
+                                                    <div className="bg-indigo-50/30 p-3 rounded-xl border border-indigo-100/50">
+                                                        <div className="text-[10px] uppercase font-bold text-indigo-400 mb-1 flex items-center gap-1">
+                                                            <Icon name="zap" size={12} /> Agentic AI Profile
+                                                        </div>
+                                                        <p className="text-xs font-semibold text-indigo-900">{bp.agenticProfile}</p>
+                                                        <p className="text-[10px] text-indigo-700 mt-1 italic">{bp.agenticDesc}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="lg:w-80 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                    <Icon name="shield-check" size={14} className="text-emerald-500" /> Strategic Guardrails
+                                                </h3>
+                                                <div className="space-y-3">
+                                                    {bp.guardrails.map((g, idx) => (
+                                                        <div key={idx} className="flex gap-3">
+                                                            <div className={`mt-1 h-1.5 w-1.5 rounded-full shrink-0 ${
+                                                                g.type === 'HITL' ? 'bg-indigo-500' : g.type === 'Audit Log' ? 'bg-amber-500' : 'bg-emerald-500'
+                                                            }`} />
+                                                            <div>
+                                                                <p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">{g.type}</p>
+                                                                <p className="text-xs text-slate-700 leading-tight">{g.desc}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                                        <span className="text-[10px] font-mono text-slate-400 uppercase">{bp.id} | Validated Environment Ready</span>
+                                        <button className="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:gap-2 transition-all">
+                                            Details <Icon name="arrow-up-right" size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {filteredData.length === 0 && (
+                                <div className="py-20 text-center bg-white rounded-2xl border border-dashed border-slate-300">
+                                    <div className="text-slate-400 mb-2 flex justify-center"><Icon name="info" size={40} /></div>
+                                    <p className="text-slate-600 font-medium">No blueprints found.</p>
+                                </div>
+                            )}
+                        </div>
+                    </main>
+
+                    <footer className="max-w-7xl mx-auto px-6 py-10 text-center border-t border-slate-200 mt-10">
+                        <p className="text-slate-400 text-xs font-medium uppercase tracking-widest italic">
+                            Zifo Strategy Consulting • AI Registry Framework 2024
+                        </p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
