@@ -3,278 +3,759 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZIFO AI Blueprint Registry</title>
-    <!-- React & Babel for Browser Rendering -->
+    <title>ZIFO AI Governance & Strategy Platform | Target Operating Model</title>
+    <!-- React 18 & ReactDOM 18 UMD -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX Compilation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.25s ease-out forwards;
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-indigo-500 selection:text-white">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
 
-        // Custom Icon Component to handle Lucide in CDN environment
-        const Icon = ({ name, size = 18, className = "" }) => {
-            useEffect(() => {
-                if (window.lucide) {
-                    window.lucide.createIcons();
-                }
-            }, [name]);
-            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        // Bulletproof Inline SVG Icons to prevent runtime preview rendering failures
+        const SVGIcon = ({ name, size = 18, className = "" }) => {
+            const icons = {
+                shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,
+                "shield-check": <g><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></g>,
+                "shield-alert": <g><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></g>,
+                cpu: <g><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"/></g>,
+                zap: <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>,
+                activity: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>,
+                user: <g><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></g>,
+                "user-check": <g><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></g>,
+                search: <g><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></g>,
+                plus: <g><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></g>,
+                copy: <g><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></g>,
+                x: <g><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></g>,
+                "arrow-right": <g><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></g>,
+                layers: <g><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></g>,
+                "trending-up": <g><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></g>,
+                "file-text": <g><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></g>,
+                "bar-chart": <g><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></g>,
+                database: <g><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></g>,
+                calendar: <g><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></g>,
+                check: <polyline points="20 6 9 17 4 12"/>,
+                sparkles: <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3z"/>,
+                "book-open": <g><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></g>,
+                refresh: <g><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></g>,
+                target: <g><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></g>
+            };
+
+            return (
+                <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width={size} 
+                    height={size} 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className={className}
+                >
+                    {icons[name] || icons["cpu"]}
+                </svg>
+            );
         };
 
-        const blueprintData = [
+        const initialBlueprints = [
             {
                 id: "BP-01",
                 name: "AI-Powered Computer System Validation (CSV)",
-                impact: "Accelerates validation by up to 75%. Automates FRA and test script generation.",
+                impact: "Accelerates GxP validation by up to 75%. Automates FRA and test script generation.",
                 risk: "High Risk",
-                riskSub: "Affects GxP/Validated state",
+                riskSub: "Annex III GxP Impact / Validated State",
                 compliance: "Traceability: Logic for script generation must be transparent.",
                 agenticProfile: "Assisted Workflow",
-                agenticDesc: "Infers application context and derives risk scores.",
+                agenticDesc: "Infers application context, builds test matrices & derives risk scores.",
+                origin: "AiDEATE Program",
+                supplyChainRole: "Provider / Deployer",
+                gpaiModel: "Azure OpenAI GPT-4o",
+                qualifiedHitl: "Certified GxP Validation Engineer Sign-off (Art. 14)",
+                complianceDeadline: "August 2026",
                 guardrails: [
-                    { type: "HITL", desc: "Expert review of all generated scripts." },
-                    { type: "Audit Log", desc: "Full trace of prompt-to-output logic." },
-                    { type: "Pass-Back", desc: "Direct 75% effort reduction passed to client." }
+                    { type: "HITL", desc: "Expert review of all generated scripts prior to execution." },
+                    { type: "Audit Log", desc: "Full trace of prompt-to-output logic stored in immutable ledger." },
+                    { type: "Pass-Back", desc: "Direct 75% effort reduction passed to client pricing." }
                 ]
             },
             {
                 id: "BP-02",
-                name: "AI-Powered Data Migration",
-                impact: "Error-free transfer of complex scientific data. Minimizes downtime and risk.",
+                name: "AI-Powered Data Migration Engine",
+                impact: "Error-free transfer of complex scientific data (LIMS/ELN). Minimizes downtime and risk.",
                 risk: "High Risk",
-                riskSub: "Critical for GxP Data Integrity",
-                compliance: "Confidentiality: Data isolation; no leakage between projects.",
+                riskSub: "Critical for GxP Data Integrity (ALCOA+)",
+                compliance: "Confidentiality: Data isolation; zero leakage between project environments.",
                 agenticProfile: "Autonomous Decisioning",
-                agenticDesc: "Agents handle mapping and continuous learning.",
+                agenticDesc: "Multi-agent framework handles schema mapping, transformation & continuous learning.",
+                origin: "AiDEATE Program",
+                supplyChainRole: "Provider / Co-Provider",
+                gpaiModel: "Azure OpenAI GPT-4o / ChromaDB Vector Engine",
+                qualifiedHitl: "Domain Data Migration Specialist Verification",
+                complianceDeadline: "August 2026",
                 guardrails: [
-                    { type: "HITL", desc: "Final mapping verification by domain experts." },
-                    { type: "Audit Log", desc: "Log of autonomous mapping decisions." },
-                    { type: "Pass-Back", desc: "Reduction in manual ETL hours reflected in pricing." }
+                    { type: "HITL", desc: "Final mapping verification by domain data stewards." },
+                    { type: "Audit Log", desc: "Granular execution log of autonomous mapping decisions." },
+                    { type: "Pass-Back", desc: "Reduction in manual ETL hours reflected in project SOW." }
                 ]
             },
             {
                 id: "BP-03",
-                name: "AI-Powered CoA Solution",
-                impact: "Moves data from PDF to LIMS in seconds. Eliminates manual entry errors.",
+                name: "AI-Powered Certificate of Analysis (CoA) Solution",
+                impact: "Moves data from PDF to LIMS in seconds. Eliminates manual entry errors in QA/QC.",
                 risk: "Medium-High",
-                riskSub: "Impacts Product Release",
+                riskSub: "Direct Impact on Product Release / Batch Release",
                 compliance: "Data Privacy: No use of batch/charge data for external model training.",
                 agenticProfile: "Agentic Orchestration",
-                agenticDesc: "Multiple agents drive digitization and schema alignment.",
+                agenticDesc: "Specialized agents drive OCR parsing, schema alignment, and LIMS REST ingestion.",
+                origin: "Client Delivery",
+                supplyChainRole: "Provider / Deployer",
+                gpaiModel: "Landing.ai OCR + Azure OpenAI GPT-4o",
+                qualifiedHitl: "QA / QC Lab Analyst One-Click Review & Approval",
+                complianceDeadline: "August 2026",
                 guardrails: [
-                    { type: "HITL", desc: "One-click approval interface for extracted data." },
-                    { type: "Audit Log", desc: "Record of OCR/LLM extraction confidence." },
-                    { type: "Pass-Back", desc: "Efficiency gains in QA lab operations." }
+                    { type: "HITL", desc: "One-click approval UI for extracted analytical parameters." },
+                    { type: "Audit Log", desc: "Confidence score record for each extracted field." },
+                    { type: "Pass-Back", desc: "Substantial operational time savings in lab QA batch disposition." }
                 ]
             },
             {
                 id: "BP-04",
-                name: "AI-Powered Audit Trail Review",
-                impact: "Ensures 100% review coverage and data integrity with minimal overhead.",
+                name: "AI-Powered Audit Trail Review Assistant",
+                impact: "Ensures 100% review coverage and data integrity with minimal manual overhead.",
                 risk: "High Risk",
-                riskSub: "Regulatory Compliance requirement",
-                compliance: "Transparency: Supplier must explain how violations are detected.",
+                riskSub: "Regulatory Compliance Requirement (21 CFR Part 11 / Annex 11)",
+                compliance: "Transparency: Supplier must explain how compliance violations are flagged.",
                 agenticProfile: "Multi-Agent Framework",
-                agenticDesc: "Specialized agents for review and violation detection.",
+                agenticDesc: "Autonomous agents parse audit logs, SOPs, and flag anomalies.",
+                origin: "Internal Innovation",
+                supplyChainRole: "Provider / Deployer",
+                gpaiModel: "Azure OpenAI o4-mini / LangGraph",
+                qualifiedHitl: "QA Compliance Officer Review of Flagged Anomalies",
+                complianceDeadline: "August 2026",
                 guardrails: [
-                    { type: "HITL", desc: "Human review of flagged 'violations'." },
-                    { type: "Audit Log", desc: "Immutable log of the review execution." },
-                    { type: "Pass-Back", desc: "Lower cost per audit log review vs. manual SOP." }
+                    { type: "HITL", desc: "Human investigation mandatory for all flagged violations." },
+                    { type: "Audit Log", desc: "Immutable execution log of the AI audit review session." },
+                    { type: "Pass-Back", desc: "Reduced audit cost per log volume vs. manual SOP review." }
                 ]
             },
             {
                 id: "BP-05",
-                name: "Precision Vendor Selection",
-                impact: "Reduces selection time from months to days. Ensures objective decisions.",
+                name: "Precision Vendor Selection Engine",
+                impact: "Reduces lab informatics selection time from months to days with objective evaluations.",
                 risk: "Limited Risk",
                 riskSub: "Decision Support System",
-                compliance: "IP & Bias: Customer owns report; AI must prove objectivity.",
+                compliance: "IP & Bias: Customer owns report; AI must prove objective evaluation.",
                 agenticProfile: "Parallel Processing",
-                agenticDesc: "LLM analyzes requirements and identifies gaps concurrently.",
+                agenticDesc: "LLM analyzes requirement matrices and identifies vendor gaps concurrently.",
+                origin: "AiDEATE Program",
+                supplyChainRole: "Deployer",
+                gpaiModel: "AWS Bedrock Claude 3.5 Sonnet",
+                qualifiedHitl: "Procurement & IT Steering Group Weighting Sign-off",
+                complianceDeadline: "August 2025",
                 guardrails: [
-                    { type: "HITL", desc: "Final vendor weighting by stakeholders." },
-                    { type: "Audit Log", desc: "Trace of scoring criteria and weighting logic." },
-                    { type: "Pass-Back", desc: "Faster procurement ROI for the client." }
+                    { type: "HITL", desc: "Final vendor priority weighting set by business stakeholders." },
+                    { type: "Audit Log", desc: "Complete trace of scoring criteria and weighting rules." },
+                    { type: "Pass-Back", desc: "Faster procurement cycle & accelerated ROI." }
+                ]
+            },
+            {
+                id: "BP-06",
+                name: "FAIR Data Knowledge Graph & Ontology Curator",
+                impact: "Automates multi-source ontology mapping and metadata enrichment for R&D FAIRification.",
+                risk: "Limited Risk",
+                riskSub: "Data Governance & Metadata Management",
+                compliance: "Data Provenance: Lineage tracking compliant with FAIR guidelines.",
+                agenticProfile: "Assisted Workflow",
+                agenticDesc: "Graph-aware LLM agents propose semantic joins and ontology extensions.",
+                origin: "Internal Innovation",
+                supplyChainRole: "Deployer",
+                gpaiModel: "AWS Bedrock Claude 3.5 Sonnet + GraphDB",
+                qualifiedHitl: "Principal Data Steward / Scientist Verification",
+                complianceDeadline: "August 2025",
+                guardrails: [
+                    { type: "HITL", desc: "Data Steward confirmation for new ontology terms." },
+                    { type: "Audit Log", desc: "Full term provenance and mapping confidence record." },
+                    { type: "Pass-Back", desc: "Eliminates months of manual ontology curation." }
                 ]
             }
         ];
 
-        const StatCard = ({ iconName, iconColor, label, value }) => (
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-100 transition-colors">
+        const StatCard = ({ iconName, iconColor, label, value, subtext }) => (
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:border-indigo-200 transition-all">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-slate-50 rounded-lg">
-                        <Icon name={iconName} className={iconColor} />
+                    <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                        <SVGIcon name={iconName} size={18} className={iconColor} />
                     </div>
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{label}</span>
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label}</span>
                 </div>
-                <div className="text-2xl font-bold text-slate-900">{value}</div>
+                <div className="text-2xl font-extrabold text-slate-900 tracking-tight">{value}</div>
+                {subtext && <p className="text-[11px] text-slate-400 mt-1 font-medium">{subtext}</p>}
             </div>
         );
 
-        const App = () => {
-            const [searchTerm, setSearchTerm] = useState("");
-            const [filter, setFilter] = useState("All");
+        const BlueprintModal = ({ bp, onClose }) => {
+            if (!bp) return null;
 
-            const filteredData = blueprintData.filter(bp => {
-                const matchesSearch = bp.name.toLowerCase().includes(searchTerm.toLowerCase());
-                const matchesFilter = filter === "All" || bp.risk === filter;
-                return matchesSearch && matchesFilter;
-            });
+            const getRiskBadge = (risk) => {
+                if (risk.includes("High")) return "bg-red-50 text-red-700 border-red-200";
+                if (risk.includes("Medium")) return "bg-amber-50 text-amber-700 border-amber-200";
+                return "bg-emerald-50 text-emerald-700 border-emerald-200";
+            };
 
-            const getRiskColor = (risk) => {
-                if (risk.includes("High")) return "text-red-600 bg-red-50 border-red-100";
-                if (risk.includes("Medium")) return "text-orange-600 bg-orange-50 border-orange-100";
-                return "text-emerald-600 bg-emerald-50 border-emerald-100";
+            const getOriginBadge = (origin) => {
+                if (origin === "AiDEATE Program") return "bg-purple-50 text-purple-700 border-purple-200";
+                if (origin === "Internal Innovation") return "bg-blue-50 text-blue-700 border-blue-200";
+                return "bg-teal-50 text-teal-700 border-teal-200";
             };
 
             return (
-                <div className="min-h-screen">
-                    {/* Header */}
-                    <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-                        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                <div className="bg-indigo-600 p-2 rounded-lg text-white flex items-center justify-center">
-                                    <Icon name="cpu" size={24} />
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+                    <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl border border-slate-200">
+                        <div className="p-6 md:p-8 border-b border-slate-100 sticky top-0 bg-white/95 backdrop-blur-md z-10 flex justify-between items-start">
+                            <div>
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getRiskBadge(bp.risk)}`}>
+                                        {bp.risk}
+                                    </span>
+                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getOriginBadge(bp.origin)}`}>
+                                        Origin: {bp.origin}
+                                    </span>
+                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold border bg-slate-100 text-slate-700 border-slate-200">
+                                        Role: {bp.supplyChainRole}
+                                    </span>
                                 </div>
-                                <div>
-                                    <h1 className="text-xl font-bold tracking-tight">ZIFO AI BLUEPRINT REGISTRY</h1>
-                                    <p className="text-xs text-slate-500 font-medium tracking-widest uppercase">Strategic Governance & Risk Dashboard</p>
+                                <h2 className="text-2xl font-bold text-slate-900">{bp.name}</h2>
+                                <p className="text-xs font-mono text-slate-400 mt-1">ID: {bp.id} • Regulatory Context: {bp.riskSub}</p>
+                            </div>
+                            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
+                                <SVGIcon name="x" size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 md:p-8 space-y-6">
+                            {/* Business Impact */}
+                            <div className="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
+                                <h4 className="text-xs font-bold uppercase text-indigo-900 tracking-wider mb-1 flex items-center gap-1.5">
+                                    <SVGIcon name="trending-up" size={14} className="text-indigo-600" /> Business Impact & Value
+                                </h4>
+                                <p className="text-sm font-medium text-slate-800">{bp.impact}</p>
+                            </div>
+
+                            {/* Extended EU AI Act Parameters */}
+                            <div>
+                                <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-3">EU AI Act & Governance Schema Parameters</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
+                                            <SVGIcon name="cpu" size={12} /> Foundation GPAI Model
+                                        </div>
+                                        <p className="text-xs font-semibold text-slate-800">{bp.gpaiModel}</p>
+                                    </div>
+                                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
+                                            <SVGIcon name="user-check" size={12} /> Article 14 Qualified HITL
+                                        </div>
+                                        <p className="text-xs font-semibold text-slate-800">{bp.qualifiedHitl}</p>
+                                    </div>
+                                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
+                                            <SVGIcon name="calendar" size={12} /> Compliance Deadline
+                                        </div>
+                                        <p className="text-xs font-bold text-indigo-700">{bp.complianceDeadline}</p>
+                                    </div>
+                                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
+                                            <SVGIcon name="file-text" size={12} /> Client CoC Focus (e.g. ACME)
+                                        </div>
+                                        <p className="text-xs font-semibold text-slate-800">{bp.compliance}</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex gap-4 items-center text-sm font-medium">
-                                <span className="flex items-center gap-2 text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full">
-                                    <Icon name="shield-check" size={16} className="text-indigo-600" />
-                                    EU AI Act Compliant
-                                </span>
+
+                            {/* Agentic Architecture */}
+                            <div>
+                                <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Agentic Architecture Profile</h3>
+                                <div className="bg-slate-900 text-slate-100 p-4 rounded-2xl border border-slate-800">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-bold uppercase tracking-wider">
+                                            {bp.agenticProfile}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-slate-300 leading-relaxed">{bp.agenticDesc}</p>
+                                </div>
+                            </div>
+
+                            {/* Strategic Guardrails */}
+                            <div>
+                                <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-3">Delivery Guardrails (Audit & Commercial)</h3>
+                                <div className="space-y-2.5">
+                                    {bp.guardrails.map((g, idx) => (
+                                        <div key={idx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 mt-0.5 ${
+                                                g.type === 'HITL' ? 'bg-indigo-100 text-indigo-800' :
+                                                g.type === 'Audit Log' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                                            }`}>
+                                                {g.type}
+                                            </span>
+                                            <p className="text-xs text-slate-700 leading-relaxed">{g.desc}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6 border-t border-slate-100 bg-slate-50/80 rounded-b-3xl flex justify-between items-center">
+                            <span className="text-xs text-slate-500 font-medium">EMEA AI Strategy Framework • René Kaufmann</span>
+                            <button onClick={onClose} className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all">
+                                Close Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const AddBlueprintModal = ({ isOpen, onClose, onAdd }) => {
+            if (!isOpen) return null;
+
+            const [formData, setFormData] = useState({
+                id: `BP-0${Math.floor(Math.random() * 90 + 10)}`,
+                name: '',
+                impact: '',
+                risk: 'High Risk',
+                riskSub: 'Annex III GxP Impact',
+                compliance: 'Traceability & Audit Trail',
+                agenticProfile: 'Assisted Workflow',
+                agenticDesc: '',
+                origin: 'AiDEATE Program',
+                supplyChainRole: 'Provider / Deployer',
+                gpaiModel: 'Azure OpenAI GPT-4o',
+                qualifiedHitl: 'Certified Domain Expert Sign-off',
+                complianceDeadline: 'August 2026',
+                guardrails: [
+                    { type: 'HITL', desc: 'Expert verification before execution.' },
+                    { type: 'Audit Log', desc: 'Immutable prompt-to-output trace.' },
+                    { type: "Pass-Back", desc: "Effort reduction passed to client pricing." }
+                ]
+            });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (!formData.name || !formData.impact) return;
+                onAdd(formData);
+                onClose();
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+                    <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl border border-slate-200 p-6 md:p-8">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900">Register New AI Blueprint</h2>
+                                <p className="text-xs text-slate-500">Add tool to Zifo AI Governance & Risk Registry</p>
+                            </div>
+                            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                                <SVGIcon name="x" size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+                            <div>
+                                <label className="block font-bold text-slate-700 mb-1">Blueprint Name *</label>
+                                <input 
+                                    type="text" required 
+                                    placeholder="e.g. AI-Powered ELN Auto-Summarizer"
+                                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Origin *</label>
+                                    <select 
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
+                                        value={formData.origin} onChange={e => setFormData({...formData, origin: e.target.value})}
+                                    >
+                                        <option value="AiDEATE Program">AiDEATE Program</option>
+                                        <option value="Internal Innovation">Internal Innovation</option>
+                                        <option value="Client Delivery">Client Delivery</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">EU AI Act Risk Class *</label>
+                                    <select 
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
+                                        value={formData.risk} onChange={e => setFormData({...formData, risk: e.target.value})}
+                                    >
+                                        <option value="High Risk">High Risk</option>
+                                        <option value="Medium-High">Medium-High Risk</option>
+                                        <option value="Limited Risk">Limited Risk</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Supply Chain Role *</label>
+                                    <select 
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
+                                        value={formData.supplyChainRole} onChange={e => setFormData({...formData, supplyChainRole: e.target.value})}
+                                    >
+                                        <option value="Deployer">Deployer</option>
+                                        <option value="Provider / Deployer">Provider / Deployer</option>
+                                        <option value="Provider / Co-Provider">Provider / Co-Provider</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Compliance Deadline *</label>
+                                    <select 
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
+                                        value={formData.complianceDeadline} onChange={e => setFormData({...formData, complianceDeadline: e.target.value})}
+                                    >
+                                        <option value="August 2025">August 2025 (GPAI Target)</option>
+                                        <option value="August 2026">August 2026 (High-Risk Binding)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-slate-700 mb-1">Foundation GPAI Model *</label>
+                                <input 
+                                    type="text" required 
+                                    placeholder="e.g. AWS Bedrock Claude 3.5 Sonnet / Azure OpenAI GPT-4o"
+                                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
+                                    value={formData.gpaiModel} onChange={e => setFormData({...formData, gpaiModel: e.target.value})}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-slate-700 mb-1">Article 14 Qualified HITL *</label>
+                                <input 
+                                    type="text" required 
+                                    placeholder="e.g. Certified QC Manager Sign-off"
+                                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
+                                    value={formData.qualifiedHitl} onChange={e => setFormData({...formData, qualifiedHitl: e.target.value})}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-slate-700 mb-1">Business Impact Summary *</label>
+                                <textarea 
+                                    rows="2" required 
+                                    placeholder="Quantifiable outcome, e.g. Accelerates throughput by 60%..."
+                                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white outline-none"
+                                    value={formData.impact} onChange={e => setFormData({...formData, impact: e.target.value})}
+                                />
+                            </div>
+
+                            <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
+                                <button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold">Cancel</button>
+                                <button type="submit" className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-sm">
+                                    Register Blueprint
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [blueprints, setBlueprints] = useState(initialBlueprints);
+            const [searchTerm, setSearchTerm] = useState("");
+            const [riskFilter, setRiskFilter] = useState("All");
+            const [originFilter, setOriginFilter] = useState("All");
+            const [roleFilter, setRoleFilter] = useState("All");
+            const [selectedBlueprint, setSelectedBlueprint] = useState(null);
+            const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+            const [showCopiedNotification, setShowCopiedNotification] = useState(false);
+
+            const filteredData = useMemo(() => {
+                return blueprints.filter(bp => {
+                    const matchesSearch = bp.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                          bp.impact.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                          bp.gpaiModel.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesRisk = riskFilter === "All" || bp.risk === riskFilter;
+                    const matchesOrigin = originFilter === "All" || bp.origin === originFilter;
+                    const matchesRole = roleFilter === "All" || bp.supplyChainRole === roleFilter;
+                    return matchesSearch && matchesRisk && matchesOrigin && matchesRole;
+                });
+            }, [blueprints, searchTerm, riskFilter, originFilter, roleFilter]);
+
+            // Metrics calculation
+            const stats = useMemo(() => {
+                const total = blueprints.length;
+                const highRisk = blueprints.filter(b => b.risk.includes("High")).length;
+                const aideateCount = blueprints.filter(b => b.origin === "AiDEATE Program").length;
+                const providerCount = blueprints.filter(b => b.supplyChainRole.includes("Provider")).length;
+                return { total, highRisk, aideateCount, providerCount };
+            }, [blueprints]);
+
+            const handleAddBlueprint = (newBp) => {
+                setBlueprints(prev => [newBp, ...prev]);
+            };
+
+            const copySowDisclosure = () => {
+                const text = `ZIFO AI DISCLOSURE STATEMENT (ACME CoC & EU AI Act Compliant)\n` +
+                    `Total Registered Blueprints: ${blueprints.length}\n` +
+                    `High Risk Systems (Annex III GxP): ${stats.highRisk}\n` +
+                    `All tools implement Article 14 Qualified Human-in-the-Loop Oversight, Immutable Audit Trails, and Transparent Efficiency Pass-Backs.\n` +
+                    `Maintained by: René Kaufmann, Head of Strategy Consulting Europe.`;
+                document.execCommand('copy');
+                setShowCopiedNotification(true);
+                setTimeout(() => setShowCopiedNotification(false), 3000);
+            };
+
+            const getRiskBadgeColor = (risk) => {
+                if (risk.includes("High")) return "text-red-700 bg-red-50 border-red-200";
+                if (risk.includes("Medium")) return "text-amber-700 bg-amber-50 border-amber-200";
+                return "text-emerald-700 bg-emerald-50 border-emerald-200";
+            };
+
+            const getOriginBadgeColor = (origin) => {
+                if (origin === "AiDEATE Program") return "bg-purple-50 text-purple-700 border-purple-200";
+                if (origin === "Internal Innovation") return "bg-blue-50 text-blue-700 border-blue-200";
+                return "bg-teal-50 text-teal-700 border-teal-200";
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    {/* Header Banner */}
+                    <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-indigo-600 p-2.5 rounded-xl text-white shadow-lg shadow-indigo-600/30">
+                                    <SVGIcon name="shield-check" size={24} />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <h1 className="text-lg font-bold tracking-tight">ZIFO AI BLUEPRINT REGISTRY</h1>
+                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                                            EU AI Act Ready
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-slate-400 font-medium">Strategy & Compliance Target Operating Model • René Kaufmann</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2.5">
+                                <button 
+                                    onClick={copySowDisclosure}
+                                    className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center gap-1.5"
+                                >
+                                    <SVGIcon name="copy" size={14} /> Copy SOW AI Disclosure
+                                </button>
+                                <button 
+                                    onClick={() => setIsAddModalOpen(true)}
+                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+                                >
+                                    <SVGIcon name="plus" size={14} /> Add Blueprint
+                                </button>
                             </div>
                         </div>
                     </header>
 
-                    <main className="max-w-7xl mx-auto px-6 py-8">
-                        {/* Stats Section */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                            <StatCard iconName="shield-alert" iconColor="text-red-500" label="High Risk Blueprints" value="3" />
-                            <StatCard iconName="zap" iconColor="text-amber-500" label="Avg. Efficiency Gain" value="~60%" />
-                            <StatCard iconName="activity" iconColor="text-indigo-500" label="Agentic Maturity" value="Advanced" />
-                            <StatCard iconName="user-check" iconColor="text-emerald-500" label="Compliance Rate" value="100%" />
+                    {/* Copied Notification toast */}
+                    {showCopiedNotification && (
+                        <div className="bg-emerald-600 text-white text-xs font-bold py-2 text-center transition-all animate-fadeIn">
+                            ✓ SOW AI Disclosure copied to clipboard for proposal attachment!
+                        </div>
+                    )}
+
+                    {/* Main Content Area */}
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full">
+                        
+                        {/* Executive Summary Stats */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                            <StatCard iconName="layers" iconColor="text-indigo-500" label="Registered Blueprints" value={stats.total} subtext="Centralized AI Portfolio" />
+                            <StatCard iconName="shield-alert" iconColor="text-red-500" label="High Risk (Annex III)" value={stats.highRisk} subtext="Mandatory QMS & Art. 14 HITL" />
+                            <StatCard iconName="sparkles" iconColor="text-purple-500" label="Origin: AiDEATE PoCs" value={stats.aideateCount} subtext="Strategic AI Program" />
+                            <StatCard iconName="file-text" iconColor="text-emerald-500" label="Role: Provider / Co-Dev" value={stats.providerCount} subtext="Strict 10-Yr Tech Doc Retention" />
                         </div>
 
-                        {/* Search & Filter */}
-                        <div className="flex flex-col md:flex-row gap-4 mb-8 justify-between items-end md:items-center">
-                            <div className="relative w-full md:w-96">
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                                    <Icon name="search" size={18} />
+                        {/* Search & Multi-Filter Control Bar */}
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between md:gap-4">
+                            {/* Search */}
+                            <div className="relative flex-1">
+                                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <SVGIcon name="search" size={16} />
                                 </div>
                                 <input 
                                     type="text" 
-                                    placeholder="Search blueprints..." 
-                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm"
+                                    placeholder="Search by blueprint name, model, or impact..." 
+                                    className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
-                            <div className="flex gap-2 p-1 bg-slate-200/50 rounded-xl overflow-x-auto max-w-full">
-                                {["All", "High Risk", "Medium-High", "Limited Risk"].map((f) => (
-                                    <button
-                                        key={f}
-                                        onClick={() => setFilter(f)}
-                                        className={`px-4 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
-                                            filter === f ? "bg-white text-indigo-600 shadow-sm" : "text-slate-600 hover:text-slate-900"
-                                        }`}
+
+                            {/* Dropdown Filters */}
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                                {/* Risk Filter */}
+                                <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
+                                    <span className="font-bold text-slate-500 text-[11px]">Risk:</span>
+                                    <select 
+                                        className="bg-transparent font-semibold text-slate-800 outline-none cursor-pointer"
+                                        value={riskFilter} onChange={e => setRiskFilter(e.target.value)}
                                     >
-                                        {f}
+                                        <option value="All">All Risk Classes</option>
+                                        <option value="High Risk">High Risk</option>
+                                        <option value="Medium-High">Medium-High</option>
+                                        <option value="Limited Risk">Limited Risk</option>
+                                    </select>
+                                </div>
+
+                                {/* Origin Filter */}
+                                <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
+                                    <span className="font-bold text-slate-500 text-[11px]">Origin:</span>
+                                    <select 
+                                        className="bg-transparent font-semibold text-slate-800 outline-none cursor-pointer"
+                                        value={originFilter} onChange={e => setOriginFilter(e.target.value)}
+                                    >
+                                        <option value="All">All Origins</option>
+                                        <option value="AiDEATE Program">AiDEATE Program</option>
+                                        <option value="Internal Innovation">Internal Innovation</option>
+                                        <option value="Client Delivery">Client Delivery</option>
+                                    </select>
+                                </div>
+
+                                {/* Role Filter */}
+                                <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
+                                    <span className="font-bold text-slate-500 text-[11px]">Role:</span>
+                                    <select 
+                                        className="bg-transparent font-semibold text-slate-800 outline-none cursor-pointer"
+                                        value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
+                                    >
+                                        <option value="All">All Roles</option>
+                                        <option value="Deployer">Deployer</option>
+                                        <option value="Provider / Deployer">Provider / Deployer</option>
+                                        <option value="Provider / Co-Provider">Provider / Co-Provider</option>
+                                    </select>
+                                </div>
+
+                                {(riskFilter !== "All" || originFilter !== "All" || roleFilter !== "All" || searchTerm) && (
+                                    <button 
+                                        onClick={() => { setRiskFilter("All"); setOriginFilter("All"); setRoleFilter("All"); setSearchTerm(""); }}
+                                        className="text-indigo-600 hover:text-indigo-800 font-bold px-2 py-1"
+                                    >
+                                        Reset
                                     </button>
-                                ))}
+                                )}
                             </div>
                         </div>
 
-                        {/* List */}
-                        <div className="grid gap-6">
+                        {/* Blueprints Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredData.map((bp) => (
-                                <div key={bp.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden group">
+                                <div 
+                                    key={bp.id} 
+                                    className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between group overflow-hidden"
+                                >
                                     <div className="p-6">
-                                        <div className="flex flex-col lg:flex-row gap-6">
-                                            <div className="flex-1">
-                                                <div className="flex items-start justify-between mb-2">
-                                                    <h2 className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{bp.name}</h2>
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRiskColor(bp.risk)}`}>
-                                                        {bp.risk}
-                                                    </span>
-                                                </div>
-                                                <p className="text-sm text-slate-500 mb-4 leading-relaxed">{bp.impact}</p>
-                                                
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
-                                                            <Icon name="eye" size={12} /> Compliance Focus (ACME)
-                                                        </div>
-                                                        <p className="text-xs font-semibold text-slate-700">{bp.compliance}</p>
-                                                    </div>
-                                                    <div className="bg-indigo-50/30 p-3 rounded-xl border border-indigo-100/50">
-                                                        <div className="text-[10px] uppercase font-bold text-indigo-400 mb-1 flex items-center gap-1">
-                                                            <Icon name="zap" size={12} /> Agentic AI Profile
-                                                        </div>
-                                                        <p className="text-xs font-semibold text-indigo-900">{bp.agenticProfile}</p>
-                                                        <p className="text-[10px] text-indigo-700 mt-1 italic">{bp.agenticDesc}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        {/* Top Badges */}
+                                        <div className="flex flex-wrap gap-1.5 mb-3">
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getRiskBadgeColor(bp.risk)}`}>
+                                                {bp.risk}
+                                            </span>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getOriginBadgeColor(bp.origin)}`}>
+                                                {bp.origin}
+                                            </span>
+                                        </div>
 
-                                            <div className="lg:w-80 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                                    <Icon name="shield-check" size={14} className="text-emerald-500" /> Strategic Guardrails
-                                                </h3>
-                                                <div className="space-y-3">
-                                                    {bp.guardrails.map((g, idx) => (
-                                                        <div key={idx} className="flex gap-3">
-                                                            <div className={`mt-1 h-1.5 w-1.5 rounded-full shrink-0 ${
-                                                                g.type === 'HITL' ? 'bg-indigo-500' : g.type === 'Audit Log' ? 'bg-amber-500' : 'bg-emerald-500'
-                                                            }`} />
-                                                            <div>
-                                                                <p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">{g.type}</p>
-                                                                <p className="text-xs text-slate-700 leading-tight">{g.desc}</p>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                        {/* Title */}
+                                        <h2 className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1 mb-2">
+                                            {bp.name}
+                                        </h2>
+                                        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-4">
+                                            {bp.impact}
+                                        </p>
+
+                                        {/* Parameters Highlights Grid */}
+                                        <div className="space-y-2 pt-3 border-t border-slate-100 text-[11px]">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-slate-400 font-medium">Supply Chain Role:</span>
+                                                <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{bp.supplyChainRole}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-slate-400 font-medium">GPAI Foundation:</span>
+                                                <span className="font-semibold text-slate-700 truncate max-w-[150px]">{bp.gpaiModel}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-slate-400 font-medium">Enforcement Target:</span>
+                                                <span className="font-bold text-indigo-600">{bp.complianceDeadline}</span>
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* Action Footer */}
                                     <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-                                        <span className="text-[10px] font-mono text-slate-400 uppercase">{bp.id} | Validated Environment Ready</span>
-                                        <button className="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:gap-2 transition-all">
-                                            Details <Icon name="arrow-up-right" size={14} />
+                                        <span className="text-[10px] font-mono text-slate-400">{bp.id}</span>
+                                        <button 
+                                            onClick={() => setSelectedBlueprint(bp)}
+                                            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-all"
+                                        >
+                                            Inspect Full Schema <SVGIcon name="arrow-right" size={14} />
                                         </button>
                                     </div>
                                 </div>
                             ))}
-
-                            {filteredData.length === 0 && (
-                                <div className="py-20 text-center bg-white rounded-2xl border border-dashed border-slate-300">
-                                    <div className="text-slate-400 mb-2 flex justify-center"><Icon name="info" size={40} /></div>
-                                    <p className="text-slate-600 font-medium">No blueprints found.</p>
-                                </div>
-                            )}
                         </div>
+
+                        {filteredData.length === 0 && (
+                            <div className="py-16 text-center bg-white rounded-3xl border border-dashed border-slate-300">
+                                <div className="text-slate-400 mb-2 flex justify-center"><SVGIcon name="x" size={36} /></div>
+                                <h3 className="text-sm font-bold text-slate-700">No matching Blueprints found</h3>
+                                <p className="text-xs text-slate-500 mt-1">Try resetting search or filter options.</p>
+                            </div>
+                        )}
                     </main>
 
-                    <footer className="max-w-7xl mx-auto px-6 py-10 text-center border-t border-slate-200 mt-10">
-                        <p className="text-slate-400 text-xs font-medium uppercase tracking-widest italic">
-                            Zifo Strategy Consulting • AI Registry Framework 2024
-                        </p>
+                    {/* Footer */}
+                    <footer className="bg-slate-900 text-white border-t border-slate-800 py-8">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center space-y-2">
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">
+                                Zifo Strategy & Delivery Workstream • AI Governance Target Operating Model
+                            </p>
+                            <p className="text-[11px] text-slate-500 max-w-xl mx-auto">
+                                Tailored for Life Sciences R&D, GxP Compliance, EU AI Act Enforcement (2025/2026), and Client Supplier Codes of Practice (e.g. ACME CoC).
+                            </p>
+                        </div>
                     </footer>
+
+                    {/* Modals */}
+                    <BlueprintModal bp={selectedBlueprint} onClose={() => setSelectedBlueprint(null)} />
+                    <AddBlueprintModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={handleAddBlueprint} />
                 </div>
             );
         };
